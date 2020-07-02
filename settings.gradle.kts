@@ -1,3 +1,3 @@
 rootProject.name = "kotlin-bloc"
 
-include(":core", ":example", ":testing")
+include(":core", ":android", ":example", ":testing")

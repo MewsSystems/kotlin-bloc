@@ -1,4 +1,4 @@
-package com.mews.android.bloc.example
+package com.mews.app.bloc.example
 
 import android.os.Bundle
 import androidx.activity.viewModels

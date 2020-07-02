@@ -1,4 +1,4 @@
-package com.mews.android.bloc
+package com.mews.app.bloc
 
 interface BlocDelegate {
     fun <EVENT : Any> onEvent(event: EVENT)

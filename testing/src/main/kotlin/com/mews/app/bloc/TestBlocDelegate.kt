@@ -1,4 +1,4 @@
-package com.mews.android.bloc
+package com.mews.app.bloc
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

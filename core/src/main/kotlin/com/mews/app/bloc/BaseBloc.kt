@@ -1,4 +1,4 @@
-package com.mews.android.bloc
+package com.mews.app.bloc
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -6,7 +6,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineScope) : Bloc<EVENT, STATE> {
+abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineScope) :
+    Bloc<EVENT, STATE> {
     protected abstract val initialState: STATE
 
     private val stateFlow by lazy { MutableStateFlow(initialState) }

@@ -1,23 +1,12 @@
-package com.mews.android.bloc.example
+package com.mews.app.bloc.android
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mews.android.bloc.BaseBloc
-import com.mews.android.bloc.Bloc
-import com.mews.android.bloc.Transition
+import com.mews.app.bloc.BaseBloc
+import com.mews.app.bloc.Bloc
+import com.mews.app.bloc.Transition
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
-
-class MainViewModel : BlocViewModel<Event, State>() {
-    override val initialState: State = State()
-
-    override suspend fun FlowCollector<State>.mapEventToState(event: Event) {
-        when (event) {
-            Event.Increment -> emit(state.copy(value = state.value + 1))
-            Event.Decrement -> emit(state.copy(value = state.value - 1))
-        }
-    }
-}
 
 abstract class BlocViewModel<EVENT : Any, STATE : Any> : ViewModel(), Bloc<EVENT, STATE> {
     abstract val initialState: STATE

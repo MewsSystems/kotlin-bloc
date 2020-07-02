@@ -1,17 +1,17 @@
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 plugins {
-    id("com.android.application")
+    id("com.android.library")
     kotlin("android")
     kotlin("android.extensions")
+    id("com.github.dcendents.android-maven")
 }
 
 android {
     compileSdkVersion(29)
 
     defaultConfig {
-        applicationId = "com.mews.android.bloc.example"
-        minSdkVersion(21)
+        minSdkVersion(19)
         targetSdkVersion(29)
         versionCode = 1
         versionName = "1.0"
@@ -33,18 +33,15 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
+        freeCompilerArgs += listOf("-module-name", "$group.android")
     }
 }
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:${KotlinCompilerVersion.VERSION}")
-    implementation("androidx.appcompat:appcompat:1.1.0")
-    implementation("com.android.support.constraint:constraint-layout:1.1.3")
-    implementation("android.arch.navigation:navigation-fragment-ktx:1.0.0")
-    implementation("android.arch.navigation:navigation-ui-ktx:1.0.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0")
     implementation("androidx.activity:activity-ktx:1.1.0")
 
-    implementation(project(":android"))
+    api(project(":core"))
 }
