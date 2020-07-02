@@ -1,6 +1,5 @@
 allprojects {
     group = "com.mews.android.bloc"
-    version = "0.1.0"
 
     repositories {
         google()
