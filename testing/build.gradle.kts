@@ -16,6 +16,7 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.freeCompilerArgs += listOf("-module-name", "${project.group}.${project.name}")
 }
 
 repositories {

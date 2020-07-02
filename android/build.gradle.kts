@@ -33,7 +33,7 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
-        freeCompilerArgs += listOf("-module-name", "$group.android")
+        freeCompilerArgs += listOf("-module-name", "$group.$name")
     }
 }
 
