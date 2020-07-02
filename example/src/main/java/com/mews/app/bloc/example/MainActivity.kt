@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener {
-            vm.addAsync(Event.Increment)
+            vm.addAsync(MainEvent.Increment)
         }
 
         lifecycleScope.launch {

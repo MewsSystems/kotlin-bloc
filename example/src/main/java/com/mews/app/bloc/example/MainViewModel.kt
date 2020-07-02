@@ -3,14 +3,11 @@ package com.mews.app.bloc.example
 import com.mews.app.bloc.android.BlocViewModel
 import kotlinx.coroutines.flow.FlowCollector
 
-class MainViewModel : BlocViewModel<Event, State>() {
-    override val initialState: State =
-        State()
+class MainViewModel : BlocViewModel<MainEvent, MainState>() {
+    override val initialState: MainState = MainState()
 
-    override suspend fun FlowCollector<State>.mapEventToState(event: Event) {
-        when (event) {
-            Event.Increment -> emit(state.copy(value = state.value + 1))
-            Event.Decrement -> emit(state.copy(value = state.value - 1))
-        }
+    override suspend fun FlowCollector<MainState>.mapEventToState(event: MainEvent) = when (event) {
+        MainEvent.Increment -> emit(state.copy(value = state.value + 1))
+        MainEvent.Decrement -> emit(state.copy(value = state.value - 1))
     }
 }
