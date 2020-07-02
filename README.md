@@ -5,7 +5,11 @@
 
 BLoC pattern implementation for Kotlin/Android. Inspired by [bloc](https://bloclibrary.dev/) library for Flutter.
 
-## How to use
+## What is BLoC
+
+BLoC (**B**usiness **Lo**gic **C**omponent) is a design pattern for state management that is built around simple yet powerful idea: BLoC is a component that takes events as an input and produces states as an output. From the very high level it can be viewed as a function mapping sequence of events to sequence of states.
+
+## How to install
 
 ### Add the JitPack repository
 
@@ -59,6 +63,6 @@ dependencies {
 }
 ```
 
-## What is BLoC
+## How to use
 
-BLoC (**B**usiness **Lo**gic **C**omponent) is a design pattern for state management that is built around simple yet powerful idea: BLoC is a component that takes events as an input and produces states as an output. From the very high level it can be viewed as a function mapping sequence of events to sequence of states.
+See [example](./example/src/main/java/com/mews/app/bloc/example) module.
