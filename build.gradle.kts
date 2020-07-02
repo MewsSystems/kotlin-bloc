@@ -1,5 +1,5 @@
 allprojects {
-    group = "com.github.MewsSystems:kotlin-bloc"
+    group = "com.github.MewsSystems.kotlin-bloc"
 
     repositories {
         google()
