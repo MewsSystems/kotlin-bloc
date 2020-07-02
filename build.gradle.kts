@@ -1,5 +1,5 @@
 allprojects {
-    group = "com.mews.android.bloc"
+    group = "com.github.MewsSystems"
 
     repositories {
         google()
