@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mews.app.bloc.BaseBloc
 import com.mews.app.bloc.Bloc
+import com.mews.app.bloc.Emitter
 import com.mews.app.bloc.Transition
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.FlowCollector
 abstract class BlocViewModel<EVENT : Any, STATE : Any> : ViewModel(), Bloc<EVENT, STATE> {
     abstract val initialState: STATE
 
-    protected abstract suspend fun FlowCollector<STATE>.mapEventToState(event: EVENT)
+    protected abstract suspend fun Emitter<STATE>.mapEventToState(event: EVENT)
 
     protected open suspend fun onTransition(transition: Transition<EVENT, STATE>) {}
 
@@ -19,25 +20,19 @@ abstract class BlocViewModel<EVENT : Any, STATE : Any> : ViewModel(), Bloc<EVENT
 
     protected open suspend fun onEvent(event: EVENT) {}
 
-    override fun addAsync(event: EVENT) {
-        bloc.addAsync(event)
-    }
+    override fun emitAsync(event: EVENT) = bloc.emitAsync(event)
 
     @InternalCoroutinesApi
-    override suspend fun collect(collector: FlowCollector<STATE>) {
-        return bloc.collect(collector)
-    }
+    override suspend fun collect(collector: FlowCollector<STATE>) = bloc.collect(collector)
 
-    override suspend fun add(event: EVENT) {
-        bloc.add(event)
-    }
+    override suspend fun emit(value: EVENT) = bloc.emit(value)
 
     override val state: STATE get() = bloc.state
 
     private val bloc = object : BaseBloc<EVENT, STATE>(viewModelScope) {
         override val initialState: STATE by lazy { this@BlocViewModel.initialState }
 
-        override suspend fun FlowCollector<STATE>.mapEventToState(event: EVENT) {
+        override suspend fun Emitter<STATE>.mapEventToState(event: EVENT) {
             this@BlocViewModel.apply { mapEventToState(event) }
         }
 

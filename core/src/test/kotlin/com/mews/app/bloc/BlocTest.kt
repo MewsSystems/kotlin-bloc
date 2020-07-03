@@ -23,9 +23,9 @@ class BlocTest {
                     emit(event.toString())
                 }
             }
-            bloc.add(1)
-            bloc.add(2)
-            bloc.add(3)
+            bloc.emit(1)
+            bloc.emit(2)
+            bloc.emit(3)
         }
 
         Assert.assertEquals(listOf(1, 2, 3), delegate.events)
@@ -52,9 +52,9 @@ class BlocTest {
                     emit(event.toString())
                 }
             }
-            bloc.add(1)
-            bloc.add(2)
-            bloc.add(3)
+            bloc.emit(1)
+            bloc.emit(2)
+            bloc.emit(3)
         }
 
         Assert.assertEquals(listOf(1, 2, 3), delegate.events)

@@ -3,6 +3,8 @@ package com.mews.app.bloc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -13,24 +15,24 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
 
     override val state: STATE get() = stateFlow.value
 
-    protected abstract suspend fun FlowCollector<STATE>.mapEventToState(event: EVENT)
+    protected abstract suspend fun Emitter<STATE>.mapEventToState(event: EVENT)
 
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<STATE>) = stateFlow.collect(collector)
 
     private val eventChannel = Channel<EVENT>()
 
-    override suspend fun add(event: EVENT) {
+    override suspend fun emit(value: EVENT) {
         try {
-            doOnEvent(event)
-            eventChannel.send(event)
+            doOnEvent(value)
+            eventChannel.send(value)
         } catch (e: Throwable) {
             doOnError(e)
         }
     }
 
-    override fun addAsync(event: EVENT) {
-        scope.launch { add(event) }
+    override fun emitAsync(event: EVENT) {
+        scope.launch { emit(event) }
     }
 
     private suspend fun doOnEvent(event: EVENT) {
@@ -56,8 +58,9 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
 
     init {
         eventChannel.consumeAsFlow()
-            .flatMapConcat { event ->
-                flow<STATE> { mapEventToState(event) }
+            .buffer(capacity = UNLIMITED)
+            .flatMapMerge { event ->
+                channelFlow<STATE> { StateEmitter(this).mapEventToState(event) }
                     .catch { doOnError(it) }
                     .map { Transition(stateFlow.value, event, it) }
             }
@@ -72,4 +75,8 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
             }
             .launchIn(scope)
     }
+}
+
+private class StateEmitter<S>(private val producerScope: ProducerScope<S>) : Emitter<S> {
+    override suspend fun emit(value: S) = producerScope.send(value)
 }
