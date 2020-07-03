@@ -3,13 +3,8 @@ package com.mews.app.bloc.example
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.whenStateAtLeast
+import com.mews.app.bloc.android.connect
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private val vm: MainViewModel by viewModels()
@@ -19,14 +14,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener {
-            vm.addAsync(MainEvent.Incremented)
-        }
+        plus.setOnClickListener { vm.addAsync(MainEvent.Incremented) }
+        minus.setOnClickListener { vm.addAsync(MainEvent.Decremented) }
 
-        lifecycleScope.launch {
-            lifecycle.whenStateAtLeast(Lifecycle.State.RESUMED) {
-                vm.onEach { text.text = it.value.toString() }.collect()
-            }
-        }
+        connect(vm) { text.text = it.value.toString() }
     }
 }
