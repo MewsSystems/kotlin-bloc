@@ -1,12 +1,14 @@
 package com.mews.app.bloc
 
-import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestCoroutineScope
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
 class BlocTest {
     private val delegate = TestBlocDelegate()
+    private val scope = TestCoroutineScope()
 
     @Before
     fun setUp() {
@@ -15,11 +17,11 @@ class BlocTest {
 
     @Test
     fun `collects events and transitions properly`() {
-        runBlockingAndCancelScope {
-            val bloc = object : BaseBloc<Int, String>(this) {
+        runBlocking {
+            val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun FlowCollector<String>.mapEventToState(event: Int) {
+                override suspend fun Emitter<String>.mapEventToState(event: Int) {
                     emit(event.toString())
                 }
             }
@@ -42,13 +44,12 @@ class BlocTest {
 
     @Test
     fun `collects errors properly`() {
-        val error = IllegalArgumentException()
-        runBlockingAndCancelScope {
-            val bloc = object : BaseBloc<Int, String>(this) {
+        runBlocking {
+            val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun FlowCollector<String>.mapEventToState(event: Int) {
-                    if (event == 2) throw error
+                override suspend fun Emitter<String>.mapEventToState(event: Int) {
+                    if (event == 2) throw IllegalArgumentException("Test error")
                     emit(event.toString())
                 }
             }
@@ -65,6 +66,6 @@ class BlocTest {
         )
         Assert.assertEquals(expectedTransitions, delegate.transitions)
 
-        Assert.assertEquals(listOf(error), delegate.errors)
+        Assert.assertEquals(listOf("Test error"), delegate.errors.map { it.message })
     }
 }

@@ -62,9 +62,10 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
             .flatMapMerge { event ->
                 channelFlow<STATE> { StateEmitter(this).mapEventToState(event) }
                     .catch { doOnError(it) }
-                    .map { Transition(stateFlow.value, event, it) }
+                    .map { event to it }
             }
-            .onEach { transition ->
+            .onEach { data ->
+                val transition = Transition(stateFlow.value, data.first, data.second)
                 if (transition.currentState == transition.nextState) return@onEach
                 try {
                     doOnTransition(transition)

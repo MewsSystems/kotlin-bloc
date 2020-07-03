@@ -12,7 +12,7 @@ class TestBlocDelegate : BlocDelegate {
 
     val events: List<Any> get() = _events.toList()
     val transitions: List<Any> get() = _transitions.toList()
-    val errors: List<Any> get() = _errors.toList()
+    val errors: List<Throwable> get() = _errors.toList()
 
     override fun <EVENT : Any> onEvent(event: EVENT) {
         _events.add(event)

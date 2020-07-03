@@ -10,6 +10,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7")
 
     testImplementation("junit", "junit", "4.12")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.7")
     testImplementation(project(":testing"))
 }
 
