@@ -9,6 +9,8 @@ BLoC pattern implementation for Kotlin/Android. Inspired by [bloc](https://blocl
 
 BLoC (**B**usiness **Lo**gic **C**omponent) is a design pattern for state management that is built around simple yet powerful idea: BLoC is a component that takes events as an input and produces states as an output. From the very high level it can be viewed as a function mapping sequence of events to sequence of states.
 
+- [BLoC design pattern](https://www.didierboelens.com/2018/08/reactive-programming-streams-bloc/)
+
 ## How to install
 
 ### Add the JitPack repository
@@ -46,6 +48,7 @@ Add it to your app `build.gradle`:
 ```groovy
 dependencies {
     implementation 'com.github.MewsSystems.kotlin-bloc:core:[VERSION]' // base functionality
+    // OR:
     implementation 'com.github.MewsSystems.kotlin-bloc:android:[VERSION]' // Android-specific things (includes core as well)
 
     testImplementation 'com.github.MewsSystems.kotlin-bloc:testing:[VERSION]' // for test helpers
@@ -57,6 +60,7 @@ dependencies {
 ```kotlin
 dependencies {
     implementation("com.github.MewsSystems.kotlin-bloc:core:[VERSION]") // base functionality
+    // OR:
     implementation("com.github.MewsSystems.kotlin-bloc:android:[VERSION]") // Android-specific things (includes core as well)
     
     testImplementation("com.github.MewsSystems.kotlin-bloc:testing:[VERSION]") // for test helpers
