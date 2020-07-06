@@ -3,7 +3,6 @@ package com.mews.app.bloc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -20,7 +19,29 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<STATE>) = stateFlow.collect(collector)
 
-    private val eventChannel = Channel<EVENT>()
+    private val eventChannel by lazy {
+        Channel<EVENT>().also { channel ->
+            channel.consumeAsFlow()
+                .transformEvents()
+                .catch { doOnError(it) }
+                .flatMapMerge { event ->
+                    channelFlow<STATE> { StateEmitter(this).mapEventToState(event) }
+                        .map { Transition(stateFlow.value, event, it) }
+                        .transformTransition()
+                        .catch { doOnError(it) }
+                }
+                .onEach { transition ->
+                    if (transition.currentState == transition.nextState) return@onEach
+                    try {
+                        doOnTransition(transition)
+                        stateFlow.value = transition.nextState
+                    } catch (e: Throwable) {
+                        doOnError(e)
+                    }
+                }
+                .launchIn(scope)
+        }
+    }
 
     override suspend fun emit(value: EVENT) {
         try {
@@ -56,26 +77,9 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
 
     protected open suspend fun onEvent(event: EVENT) {}
 
-    init {
-        eventChannel.consumeAsFlow()
-            .buffer(capacity = UNLIMITED)
-            .flatMapMerge { event ->
-                channelFlow<STATE> { StateEmitter(this).mapEventToState(event) }
-                    .catch { doOnError(it) }
-                    .map { event to it }
-            }
-            .onEach { data ->
-                val transition = Transition(stateFlow.value, data.first, data.second)
-                if (transition.currentState == transition.nextState) return@onEach
-                try {
-                    doOnTransition(transition)
-                    stateFlow.value = transition.nextState
-                } catch (e: Throwable) {
-                    doOnError(e)
-                }
-            }
-            .launchIn(scope)
-    }
+    protected open fun Flow<EVENT>.transformEvents(): Flow<EVENT> = this
+
+    protected open fun Flow<Transition<EVENT, STATE>>.transformTransition() = this
 }
 
 private class StateEmitter<S>(private val producerScope: ProducerScope<S>) : Emitter<S> {
