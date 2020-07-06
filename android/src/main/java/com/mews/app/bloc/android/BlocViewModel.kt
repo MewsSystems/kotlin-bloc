@@ -21,10 +21,7 @@ abstract class BlocViewModel<EVENT : Any, STATE : Any> : ViewModel(), Bloc<EVENT
 
     protected open suspend fun onEvent(event: EVENT) {}
 
-    protected open fun Flow<EVENT>.transformEvents(): Flow<EVENT> {
-        println("tranformed")
-        return this
-    }
+    protected open fun Flow<EVENT>.transformEvents(): Flow<EVENT> = this
 
     protected open fun Flow<Transition<EVENT, STATE>>.transformTransition(): Flow<Transition<EVENT, STATE>> = this
 
@@ -56,10 +53,7 @@ abstract class BlocViewModel<EVENT : Any, STATE : Any> : ViewModel(), Bloc<EVENT
             this@BlocViewModel.onEvent(event)
         }
 
-        override fun Flow<EVENT>.transformEvents(): Flow<EVENT> = with(this@BlocViewModel) {
-            println("vvv")
-            transformEvents()
-        }
+        override fun Flow<EVENT>.transformEvents(): Flow<EVENT> = with(this@BlocViewModel) { transformEvents() }
 
         override fun Flow<Transition<EVENT, STATE>>.transformTransition(): Flow<Transition<EVENT, STATE>> =
             with(this@BlocViewModel) { transformTransition() }
