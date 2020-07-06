@@ -7,18 +7,11 @@ import com.mews.app.bloc.Bloc
 import com.mews.app.bloc.Emitter
 import com.mews.app.bloc.Transition
 import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 
 abstract class BlocViewModel<EVENT : Any, STATE : Any> : ViewModel(), Bloc<EVENT, STATE> {
     abstract val initialState: STATE
-
-    protected abstract suspend fun Emitter<STATE>.mapEventToState(event: EVENT)
-
-    protected open suspend fun onTransition(transition: Transition<EVENT, STATE>) {}
-
-    protected open suspend fun onError(error: Throwable) {}
-
-    protected open suspend fun onEvent(event: EVENT) {}
 
     override fun emitAsync(event: EVENT) = bloc.emitAsync(event)
 
@@ -36,16 +29,16 @@ abstract class BlocViewModel<EVENT : Any, STATE : Any> : ViewModel(), Bloc<EVENT
             this@BlocViewModel.apply { mapEventToState(event) }
         }
 
-        override suspend fun onTransition(transition: Transition<EVENT, STATE>) {
+        override suspend fun onTransition(transition: Transition<EVENT, STATE>) =
             this@BlocViewModel.onTransition(transition)
-        }
 
-        override suspend fun onError(error: Throwable) {
-            this@BlocViewModel.onError(error)
-        }
+        override suspend fun onError(error: Throwable) = this@BlocViewModel.onError(error)
 
-        override suspend fun onEvent(event: EVENT) {
-            this@BlocViewModel.onEvent(event)
-        }
+        override suspend fun onEvent(event: EVENT) = this@BlocViewModel.onEvent(event)
+
+        override fun transformEvents(events: Flow<EVENT>): Flow<EVENT> = this@BlocViewModel.transformEvents(events)
+
+        override fun transformTransitions(transitions: Flow<Transition<EVENT, STATE>>): Flow<Transition<EVENT, STATE>> =
+            this@BlocViewModel.transformTransitions(transitions)
     }
 }

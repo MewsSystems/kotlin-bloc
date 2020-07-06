@@ -3,7 +3,6 @@ package com.mews.app.bloc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -15,12 +14,31 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
 
     override val state: STATE get() = stateFlow.value
 
-    protected abstract suspend fun Emitter<STATE>.mapEventToState(event: EVENT)
-
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<STATE>) = stateFlow.collect(collector)
 
-    private val eventChannel = Channel<EVENT>()
+    private val eventChannel by lazy {
+        Channel<EVENT>().also { channel ->
+            channel.consumeAsFlow()
+                .let(::transformEvents)
+                .flatMapConcat { event ->
+                    channelFlow<STATE> { StateEmitter(this).mapEventToState(event) }
+                        .map { Transition(stateFlow.value, event, it) }
+                        .catch { doOnError(it) }
+                        .let(::transformTransitions)
+                }
+                .onEach { transition ->
+                    if (transition.currentState == transition.nextState) return@onEach
+                    try {
+                        doOnTransition(transition)
+                        stateFlow.value = transition.nextState
+                    } catch (e: Throwable) {
+                        doOnError(e)
+                    }
+                }
+                .launchIn(scope)
+        }
+    }
 
     override suspend fun emit(value: EVENT) {
         try {
@@ -48,33 +66,6 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
     private suspend fun doOnError(error: Throwable) {
         BlocSupervisor.delegate?.onError(error)
         onError(error)
-    }
-
-    protected open suspend fun onTransition(transition: Transition<EVENT, STATE>) {}
-
-    protected open suspend fun onError(error: Throwable) {}
-
-    protected open suspend fun onEvent(event: EVENT) {}
-
-    init {
-        eventChannel.consumeAsFlow()
-            .buffer(capacity = UNLIMITED)
-            .flatMapMerge { event ->
-                channelFlow<STATE> { StateEmitter(this).mapEventToState(event) }
-                    .catch { doOnError(it) }
-                    .map { event to it }
-            }
-            .onEach { data ->
-                val transition = Transition(stateFlow.value, data.first, data.second)
-                if (transition.currentState == transition.nextState) return@onEach
-                try {
-                    doOnTransition(transition)
-                    stateFlow.value = transition.nextState
-                } catch (e: Throwable) {
-                    doOnError(e)
-                }
-            }
-            .launchIn(scope)
     }
 }
 
