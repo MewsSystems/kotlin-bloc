@@ -82,7 +82,8 @@ class BlocTest {
 
                 override suspend fun Emitter<String>.mapEventToState(event: Int) = emit(event.toString())
 
-                override fun Flow<Int>.transformEvents(): Flow<Int> = filter { it != 2 }
+                override fun transformEvents(flow: Flow<Int>): Flow<Int> =
+                    flow.filter { it != 2 }
             }
             bloc.emit(1)
             bloc.emit(2)
@@ -107,8 +108,8 @@ class BlocTest {
                 override suspend fun Emitter<String>.mapEventToState(event: Int) = emit(event.toString())
 
                 // Could be simplified after https://github.com/Kotlin/kotlinx.coroutines/issues/2034
-                override fun Flow<Int>.transformEvents(): Flow<Int> = channelFlow {
-                    val broadcast = broadcastIn(this).asFlow()
+                override fun transformEvents(events: Flow<Int>): Flow<Int> = channelFlow {
+                    val broadcast = events.broadcastIn(scope).asFlow()
                     val eventTwo = broadcast.filter { it == 2 }.debounce(100)
                     val otherEvents = broadcast.filter { it != 2 }
                     merge(eventTwo, otherEvents).collect { send(it) }

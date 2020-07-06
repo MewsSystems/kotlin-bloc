@@ -13,7 +13,7 @@ class MainViewModel : BlocViewModel<MainEvent, MainState>() {
         MainEvent.Decremented -> emit(state.copy(value = state.value - 1))
     }
 
-    override fun Flow<MainEvent>.transformEvents(): Flow<MainEvent> = transform {
+    override fun transformEvents(events: Flow<MainEvent>): Flow<MainEvent> = events.transform {
         emit(it)
         emit(it)
     }

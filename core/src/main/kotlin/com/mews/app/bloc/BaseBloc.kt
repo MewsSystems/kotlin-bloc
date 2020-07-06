@@ -14,21 +14,18 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
 
     override val state: STATE get() = stateFlow.value
 
-    protected abstract suspend fun Emitter<STATE>.mapEventToState(event: EVENT)
-
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<STATE>) = stateFlow.collect(collector)
 
     private val eventChannel by lazy {
         Channel<EVENT>().also { channel ->
             channel.consumeAsFlow()
-                .transformEvents()
-                .catch { doOnError(it) }
+                .let(::transformEvents)
                 .flatMapConcat { event ->
                     channelFlow<STATE> { StateEmitter(this).mapEventToState(event) }
                         .map { Transition(stateFlow.value, event, it) }
-                        .transformTransition()
                         .catch { doOnError(it) }
+                        .let(::transformTransitions)
                 }
                 .onEach { transition ->
                     if (transition.currentState == transition.nextState) return@onEach
@@ -70,16 +67,6 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
         BlocSupervisor.delegate?.onError(error)
         onError(error)
     }
-
-    protected open suspend fun onTransition(transition: Transition<EVENT, STATE>) {}
-
-    protected open suspend fun onError(error: Throwable) {}
-
-    protected open suspend fun onEvent(event: EVENT) {}
-
-    protected open fun Flow<EVENT>.transformEvents(): Flow<EVENT> = this
-
-    protected open fun Flow<Transition<EVENT, STATE>>.transformTransition() = this
 }
 
 private class StateEmitter<S>(private val producerScope: ProducerScope<S>) : Emitter<S> {
