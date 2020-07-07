@@ -14,8 +14,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        plus.setOnClickListener { vm.emitAsync(MainEvent.Incremented) }
-        minus.setOnClickListener { vm.emitAsync(MainEvent.Decremented) }
+        plus.setOnClickListener { vm.addAsync(MainEvent.Incremented) }
+        minus.setOnClickListener { vm.addAsync(MainEvent.Decremented) }
 
         connect(vm) { text.text = it.value.toString() }
     }

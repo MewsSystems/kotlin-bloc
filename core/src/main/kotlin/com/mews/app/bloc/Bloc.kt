@@ -16,7 +16,7 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Sink<EVENT> {
     /**
      * Call this function to emit a new [EVENT] asynchronously within bloc scope.
      */
-    fun emitAsync(event: EVENT)
+    fun addAsync(event: EVENT)
 
     /**
      * Takes an incoming [event] and emits new [STATE].

@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.FlowCollector
 abstract class BlocViewModel<EVENT : Any, STATE : Any> : ViewModel(), Bloc<EVENT, STATE> {
     abstract val initialState: STATE
 
-    override fun emitAsync(event: EVENT) = bloc.emitAsync(event)
+    override fun addAsync(event: EVENT) = bloc.addAsync(event)
 
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<STATE>) = bloc.collect(collector)

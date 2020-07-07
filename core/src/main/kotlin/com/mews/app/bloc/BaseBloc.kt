@@ -49,7 +49,7 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
         }
     }
 
-    override fun emitAsync(event: EVENT) {
+    override fun addAsync(event: EVENT) {
         scope.launch { add(event) }
     }
 
