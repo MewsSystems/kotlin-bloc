@@ -22,7 +22,7 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
             channel.consumeAsFlow()
                 .let(::transformEvents)
                 .flatMapConcat { event ->
-                    channelFlow<STATE> { StateEmitter(this).mapEventToState(event) }
+                    channelFlow<STATE> { StateSink(this).mapEventToState(event) }
                         .map { Transition(stateFlow.value, event, it) }
                         .catch { doOnError(it) }
                         .let(::transformTransitions)
@@ -40,7 +40,7 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
         }
     }
 
-    override suspend fun emit(value: EVENT) {
+    override suspend fun add(value: EVENT) {
         try {
             doOnEvent(value)
             eventChannel.send(value)
@@ -50,7 +50,7 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
     }
 
     override fun emitAsync(event: EVENT) {
-        scope.launch { emit(event) }
+        scope.launch { add(event) }
     }
 
     private suspend fun doOnEvent(event: EVENT) {
@@ -69,6 +69,6 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
     }
 }
 
-private class StateEmitter<S>(private val producerScope: ProducerScope<S>) : Emitter<S> {
-    override suspend fun emit(value: S) = producerScope.send(value)
+private class StateSink<S>(private val producerScope: ProducerScope<S>) : Sink<S> {
+    override suspend fun add(value: S) = producerScope.send(value)
 }

@@ -2,7 +2,7 @@ package com.mews.app.bloc
 
 import kotlinx.coroutines.flow.Flow
 
-interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Emitter<EVENT> {
+interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Sink<EVENT> {
     /**
      * Returns current state.
      */
@@ -11,7 +11,7 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Emitter<EVENT> {
     /**
      * Call this function to emit a new [EVENT] that should be processed by bloc.
      */
-    override suspend fun emit(value: EVENT)
+    override suspend fun add(value: EVENT)
 
     /**
      * Call this function to emit a new [EVENT] asynchronously within bloc scope.
@@ -21,7 +21,7 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Emitter<EVENT> {
     /**
      * Takes an incoming [event] and emits new [STATE].
      */
-    suspend fun Emitter<STATE>.mapEventToState(event: EVENT)
+    suspend fun Sink<STATE>.mapEventToState(event: EVENT)
 
     /**
      * Called whenever [transition] occurs before state is updated.
@@ -34,7 +34,7 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Emitter<EVENT> {
     suspend fun onError(error: Throwable) {}
 
     /**
-     * Called whenever an [event] is [emit]ted.
+     * Called whenever an [event] is [add]ted.
      */
     suspend fun onEvent(event: EVENT) {}
 

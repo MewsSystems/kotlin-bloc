@@ -26,13 +26,13 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun Emitter<String>.mapEventToState(event: Int) {
-                    emit(event.toString())
+                override suspend fun Sink<String>.mapEventToState(event: Int) {
+                    add(event.toString())
                 }
             }
-            bloc.emit(1)
-            bloc.emit(2)
-            bloc.emit(3)
+            bloc.add(1)
+            bloc.add(2)
+            bloc.add(3)
         }
 
         Assert.assertEquals(listOf(1, 2, 3), delegate.events)
@@ -53,14 +53,14 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun Emitter<String>.mapEventToState(event: Int) {
+                override suspend fun Sink<String>.mapEventToState(event: Int) {
                     if (event == 2) throw IllegalArgumentException("Test error")
-                    emit(event.toString())
+                    add(event.toString())
                 }
             }
-            bloc.emit(1)
-            bloc.emit(2)
-            bloc.emit(3)
+            bloc.add(1)
+            bloc.add(2)
+            bloc.add(3)
         }
 
         Assert.assertEquals(listOf(1, 2, 3), delegate.events)
@@ -80,14 +80,14 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun Emitter<String>.mapEventToState(event: Int) = emit(event.toString())
+                override suspend fun Sink<String>.mapEventToState(event: Int) = add(event.toString())
 
                 override fun transformEvents(flow: Flow<Int>): Flow<Int> =
                     flow.filter { it != 2 }
             }
-            bloc.emit(1)
-            bloc.emit(2)
-            bloc.emit(3)
+            bloc.add(1)
+            bloc.add(2)
+            bloc.add(3)
         }
 
         Assert.assertEquals(listOf(1, 2, 3), delegate.events)
@@ -105,7 +105,7 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun Emitter<String>.mapEventToState(event: Int) = emit(event.toString())
+                override suspend fun Sink<String>.mapEventToState(event: Int) = add(event.toString())
 
                 // Could be simplified after https://github.com/Kotlin/kotlinx.coroutines/issues/2034
                 override fun transformEvents(events: Flow<Int>): Flow<Int> = channelFlow {
@@ -115,11 +115,11 @@ class BlocTest {
                     merge(eventTwo, otherEvents).collect { send(it) }
                 }
             }
-            bloc.emit(1)
-            bloc.emit(2)
-            bloc.emit(2)
-            bloc.emit(2)
-            bloc.emit(3)
+            bloc.add(1)
+            bloc.add(2)
+            bloc.add(2)
+            bloc.add(2)
+            bloc.add(3)
             scope.advanceTimeBy(1000)
         }
 
