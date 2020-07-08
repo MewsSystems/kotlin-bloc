@@ -3,7 +3,6 @@ package com.mews.app.bloc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -22,7 +21,7 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
             channel.consumeAsFlow()
                 .let(::transformEvents)
                 .flatMapConcat { event ->
-                    channelFlow<STATE> { StateSink(this).mapEventToState(event) }
+                    channelFlow<STATE> { mapEventToState(event, ::send) }
                         .map { Transition(stateFlow.value, event, it) }
                         .catch { doOnError(it) }
                         .let(::transformTransitions)
@@ -40,17 +39,15 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
         }
     }
 
-    override suspend fun add(value: EVENT) {
-        try {
-            doOnEvent(value)
-            eventChannel.send(value)
-        } catch (e: Throwable) {
-            doOnError(e)
+    override fun add(value: EVENT) {
+        scope.launch {
+            try {
+                doOnEvent(value)
+                eventChannel.send(value)
+            } catch (e: Throwable) {
+                doOnError(e)
+            }
         }
-    }
-
-    override fun addAsync(event: EVENT) {
-        scope.launch { add(event) }
     }
 
     private suspend fun doOnEvent(event: EVENT) {
@@ -67,8 +64,4 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
         BlocSupervisor.delegate?.onError(error)
         onError(error)
     }
-}
-
-private class StateSink<S>(private val producerScope: ProducerScope<S>) : Sink<S> {
-    override suspend fun add(value: S) = producerScope.send(value)
 }

@@ -26,8 +26,8 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun Sink<String>.mapEventToState(event: Int) {
-                    add(event.toString())
+                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) {
+                    emitState(event.toString())
                 }
             }
             bloc.add(1)
@@ -53,9 +53,9 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun Sink<String>.mapEventToState(event: Int) {
+                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) {
                     if (event == 2) throw IllegalArgumentException("Test error")
-                    add(event.toString())
+                    emitState(event.toString())
                 }
             }
             bloc.add(1)
@@ -80,7 +80,8 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun Sink<String>.mapEventToState(event: Int) = add(event.toString())
+                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) =
+                    emitState(event.toString())
 
                 override fun transformEvents(flow: Flow<Int>): Flow<Int> =
                     flow.filter { it != 2 }
@@ -105,7 +106,8 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun Sink<String>.mapEventToState(event: Int) = add(event.toString())
+                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) =
+                    emitState(event.toString())
 
                 // Could be simplified after https://github.com/Kotlin/kotlinx.coroutines/issues/2034
                 override fun transformEvents(events: Flow<Int>): Flow<Int> = channelFlow {
@@ -127,6 +129,28 @@ class BlocTest {
             Transition("0", 1, "1"),
             Transition("1", 3, "3"),
             Transition("3", 2, "2")
+        )
+        Assert.assertEquals(expectedTransitions, delegate.transitions)
+    }
+
+    @Test
+    fun `can emit event during mapEventToState`() {
+        runBlocking {
+            val bloc = object : BaseBloc<Int, String>(scope) {
+                override val initialState: String = "0"
+
+                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) =
+                    if (event == 2) add(10) else emitState(event.toString())
+            }
+            bloc.add(1)
+            bloc.add(2)
+            bloc.add(3)
+        }
+
+        val expectedTransitions = listOf(
+            Transition("0", 1, "1"),
+            Transition("1", 10, "10"),
+            Transition("10", 3, "3")
         )
         Assert.assertEquals(expectedTransitions, delegate.transitions)
     }
