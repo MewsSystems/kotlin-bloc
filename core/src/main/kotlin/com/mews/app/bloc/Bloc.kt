@@ -14,9 +14,9 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Sink<EVENT> {
     override fun add(value: EVENT)
 
     /**
-     * Takes an incoming [event] and emits new [STATE].
+     * Processes an incoming [event] and optionally emits a new [STATE] with [emitState].
      */
-    suspend fun Sink<STATE>.mapEventToState(event: EVENT)
+    suspend fun mapEventToState(event: EVENT, emitState: suspend (STATE) -> Unit)
 
     /**
      * Called whenever [transition] occurs before state is updated.

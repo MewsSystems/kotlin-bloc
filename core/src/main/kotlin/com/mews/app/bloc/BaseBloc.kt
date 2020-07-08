@@ -3,7 +3,6 @@ package com.mews.app.bloc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -22,7 +21,7 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
             channel.consumeAsFlow()
                 .let(::transformEvents)
                 .flatMapConcat { event ->
-                    channelFlow<STATE> { StateSink(this).mapEventToState(event) }
+                    channelFlow<STATE> { mapEventToState(event, ::send) }
                         .map { Transition(stateFlow.value, event, it) }
                         .catch { doOnError(it) }
                         .let(::transformTransitions)
@@ -64,11 +63,5 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
     private suspend fun doOnError(error: Throwable) {
         BlocSupervisor.delegate?.onError(error)
         onError(error)
-    }
-}
-
-private class StateSink<S>(private val producerScope: ProducerScope<S>) : Sink<S> {
-    override fun add(value: S) {
-        producerScope.launch { producerScope.send(value) }
     }
 }
