@@ -130,4 +130,36 @@ class BlocTest {
         )
         Assert.assertEquals(expectedTransitions, delegate.transitions)
     }
+
+    @Test
+    fun `can emit event during event processing`() {
+        runBlocking {
+            val bloc = object : BaseBloc<Int, String>(scope) {
+                override val initialState: String = "0"
+
+                override suspend fun Sink<String>.mapEventToState(event: Int) {
+                    if (event == 2) add(10)
+                    add(event.toString())
+                }
+
+                override suspend fun onEvent(event: Int) {
+                    println("onEvent $event")
+                }
+
+                override suspend fun onError(error: Throwable) {
+                    println(error)
+                }
+            }
+            bloc.add(1)
+            bloc.add(2)
+            bloc.add(3)
+        }
+
+        val expectedTransitions = listOf(
+            Transition("0", 1, "1"),
+            Transition("1", 3, "3"),
+            Transition("3", 2, "2")
+        )
+        Assert.assertEquals(expectedTransitions, delegate.transitions)
+    }
 }

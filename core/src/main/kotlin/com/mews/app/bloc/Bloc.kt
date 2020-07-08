@@ -11,12 +11,7 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Sink<EVENT> {
     /**
      * Call this function to emit a new [EVENT] that should be processed by bloc.
      */
-    override suspend fun add(value: EVENT)
-
-    /**
-     * Call this function to emit a new [EVENT] asynchronously within bloc scope.
-     */
-    fun addAsync(event: EVENT)
+    override fun add(value: EVENT)
 
     /**
      * Takes an incoming [event] and emits new [STATE].
