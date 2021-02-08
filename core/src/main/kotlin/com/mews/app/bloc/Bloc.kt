@@ -42,5 +42,5 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Sink<EVENT> {
     /**
      * Transforms [transitions] before [onTransition] is called.
      */
-    fun transformTransitions(transitions: Flow<Transition<EVENT, STATE>>) = transitions
+    fun transformTransitions(transitions: Flow<Transition<EVENT, STATE>>): Flow<Transition<EVENT, STATE>> = transitions
 }
