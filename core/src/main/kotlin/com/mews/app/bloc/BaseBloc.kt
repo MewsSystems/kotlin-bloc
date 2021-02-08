@@ -2,7 +2,6 @@ package com.mews.app.bloc
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -16,34 +15,36 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<STATE>) = stateFlow.collect(collector)
 
-    private val eventChannel by lazy {
-        Channel<EVENT>().also { channel ->
-            channel.consumeAsFlow()
-                .let(::transformEvents)
-                .flatMapConcat { event ->
-                    channelFlow { mapEventToState(event).onEach { send(it) }.collect() }
+    private val eventsFlow = MutableSharedFlow<EVENT>().also { events ->
+        transformEvents(events)
+            .flatMapConcat { event ->
+                try {
+                    mapEventToState(event)
                         .map { Transition(stateFlow.value, event, it) }
                         .catch { doOnError(it) }
                         .let(::transformTransitions)
+                } catch (e: Exception) {
+                    doOnError(e)
+                    flow<Transition<EVENT, STATE>> { }
                 }
-                .onEach { transition ->
-                    if (transition.currentState == transition.nextState) return@onEach
-                    try {
-                        doOnTransition(transition)
-                        stateFlow.value = transition.nextState
-                    } catch (e: Throwable) {
-                        doOnError(e)
-                    }
+            }
+            .onEach { transition ->
+                if (transition.currentState == transition.nextState) return@onEach
+                try {
+                    doOnTransition(transition)
+                    stateFlow.value = transition.nextState
+                } catch (e: Throwable) {
+                    doOnError(e)
                 }
-                .launchIn(scope)
-        }
+            }
+            .launchIn(scope)
     }
 
     override fun add(value: EVENT) {
         scope.launch {
             try {
                 doOnEvent(value)
-                eventChannel.send(value)
+                eventsFlow.emit(value)
             } catch (e: Throwable) {
                 doOnError(e)
             }

@@ -7,10 +7,10 @@ plugins {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
     testImplementation("junit", "junit", "4.12")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.7")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.4.2")
     testImplementation(project(":testing"))
 }
 
