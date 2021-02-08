@@ -21,7 +21,7 @@ abstract class BaseBloc<EVENT : Any, STATE : Any>(private val scope: CoroutineSc
             channel.consumeAsFlow()
                 .let(::transformEvents)
                 .flatMapConcat { event ->
-                    channelFlow<STATE> { mapEventToState(event, ::send) }
+                    channelFlow { mapEventToState(event).onEach { send(it) }.collect() }
                         .map { Transition(stateFlow.value, event, it) }
                         .catch { doOnError(it) }
                         .let(::transformTransitions)

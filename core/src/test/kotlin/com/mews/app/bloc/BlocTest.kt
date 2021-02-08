@@ -26,8 +26,8 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) {
-                    emitState(event.toString())
+                override suspend fun mapEventToState(event: Int): Flow<String> {
+                    return flow { emit(event.toString()) }
                 }
             }
             bloc.add(1)
@@ -53,9 +53,9 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) {
+                override suspend fun mapEventToState(event: Int): Flow<String> {
                     if (event == 2) throw IllegalArgumentException("Test error")
-                    emitState(event.toString())
+                    return flow { emit(event.toString()) }
                 }
             }
             bloc.add(1)
@@ -80,11 +80,11 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) =
-                    emitState(event.toString())
+                override suspend fun mapEventToState(event: Int): Flow<String> =
+                    flow { emit(event.toString()) }
 
-                override fun transformEvents(flow: Flow<Int>): Flow<Int> =
-                    flow.filter { it != 2 }
+                override fun transformEvents(events: Flow<Int>): Flow<Int> =
+                    events.filter { it != 2 }
             }
             bloc.add(1)
             bloc.add(2)
@@ -106,8 +106,8 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) =
-                    emitState(event.toString())
+                override suspend fun mapEventToState(event: Int): Flow<String> =
+                    flow { emit(event.toString()) }
 
                 // Could be simplified after https://github.com/Kotlin/kotlinx.coroutines/issues/2034
                 override fun transformEvents(events: Flow<Int>): Flow<Int> = channelFlow {
@@ -139,8 +139,13 @@ class BlocTest {
             val bloc = object : BaseBloc<Int, String>(scope) {
                 override val initialState: String = "0"
 
-                override suspend fun mapEventToState(event: Int, emitState: suspend (String) -> Unit) =
-                    if (event == 2) add(10) else emitState(event.toString())
+                override suspend fun mapEventToState(event: Int): Flow<String> =
+                    if (event == 2) {
+                        add(10)
+                        flow { }
+                    } else {
+                        flow { emit(event.toString()) }
+                    }
             }
             bloc.add(1)
             bloc.add(2)

@@ -16,7 +16,7 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Sink<EVENT> {
     /**
      * Processes an incoming [event] and optionally emits a new [STATE] with [emitState].
      */
-    suspend fun mapEventToState(event: EVENT, emitState: suspend (STATE) -> Unit)
+    suspend fun mapEventToState(event: EVENT): Flow<STATE>
 
     /**
      * Called whenever [transition] occurs before state is updated.
