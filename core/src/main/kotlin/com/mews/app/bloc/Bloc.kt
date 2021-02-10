@@ -14,9 +14,9 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Sink<EVENT> {
     override fun add(value: EVENT)
 
     /**
-     * Processes an incoming [event] and optionally emits a new [STATE] with [emitState].
+     * Processes an incoming [event] and maps it into a new [STATE].
      */
-    suspend fun mapEventToState(event: EVENT, emitState: suspend (STATE) -> Unit)
+    suspend fun mapEventToState(event: EVENT): Flow<STATE>
 
     /**
      * Called whenever [transition] occurs before state is updated.
@@ -29,7 +29,7 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Sink<EVENT> {
     suspend fun onError(error: Throwable) {}
 
     /**
-     * Called whenever an [event] is [add]ted.
+     * Called whenever an [event] is [add]ed.
      */
     suspend fun onEvent(event: EVENT) {}
 
@@ -42,5 +42,5 @@ interface Bloc<EVENT : Any, STATE : Any> : Flow<STATE>, Sink<EVENT> {
     /**
      * Transforms [transitions] before [onTransition] is called.
      */
-    fun transformTransitions(transitions: Flow<Transition<EVENT, STATE>>) = transitions
+    fun transformTransitions(transitions: Flow<Transition<EVENT, STATE>>): Flow<Transition<EVENT, STATE>> = transitions
 }

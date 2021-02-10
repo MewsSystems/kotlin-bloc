@@ -22,8 +22,8 @@ abstract class BlocViewModel<EVENT : Any, STATE : Any> : ViewModel(), Bloc<EVENT
     private val bloc = object : BaseBloc<EVENT, STATE>(viewModelScope) {
         override val initialState: STATE by lazy { this@BlocViewModel.initialState }
 
-        override suspend fun mapEventToState(event: EVENT, emitState: suspend (STATE) -> Unit) =
-            this@BlocViewModel.mapEventToState(event, emitState)
+        override suspend fun mapEventToState(event: EVENT): Flow<STATE> =
+            this@BlocViewModel.mapEventToState(event)
 
         override suspend fun onTransition(transition: Transition<EVENT, STATE>) =
             this@BlocViewModel.onTransition(transition)
