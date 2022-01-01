@@ -14,7 +14,7 @@ buildscript {
         google()
         jcenter()
     }
-    val kotlinVersion = "1.3.72"
+    val kotlinVersion = "1.6.10"
 
     dependencies {
         classpath("com.android.tools.build:gradle:3.6.3")
